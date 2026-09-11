@@ -258,31 +258,29 @@
         "scenes": {
             // Scene 1: Stairway
             "stairway": {
-    "title": "Church Stairway Entrance",
-    "hfov": 100,
-    "pitch": 0,
-    "yaw": 0,
-    "type": "equirectangular",
-    "panorama": "church_stairway_4k.jpg",
-    "hotSpots": [
-        {
-            // Positioned near the stained-glass window frame (Image 1)
-            "pitch": 12.0,
-            "yaw": 18.0,
-            "type": "scene",
-            "text": "ENTER INTERIOR MAIN HALL",
-            "sceneId": "interior"
-        },
-        {
-            // Positioned at the wall along the stairs (Image 2)
-            "pitch": -10.0,
-            "yaw": -25.0,
-            "type": "scene",
-            "text": "GO TO MUSEUM",
-            "sceneId": "museum"
-        }
-    ]
-}
+                "title": "Church Stairway Entrance",
+                "hfov": 100,
+                "pitch": 0,
+                "yaw": 0,
+                "type": "equirectangular",
+                "panorama": "church_stairway_4k.jpg",
+                "hotSpots": [
+                    {
+                        "pitch": 12.0,
+                        "yaw": 18.0,
+                        "type": "scene",
+                        "text": "ENTER INTERIOR MAIN HALL",
+                        "sceneId": "interior"
+                    },
+                    {
+                        "pitch": -10.0,
+                        "yaw": -25.0,
+                        "type": "scene",
+                        "text": "GO TO MUSEUM",
+                        "sceneId": "museum"
+                    }
+                ]
+            },
 
             // Scene 2: Interior Main Hall
             "interior": {
@@ -294,10 +292,8 @@
                 "panorama": "church_interior_4k.jpg",
                 "hotSpots": [
                     {
-                        // --- CORRECTED HOTSPOT POSITION ---
-                        "pitch": -1.0,  // Move slightly lower
-                        "yaw": -120.0,  // Move left towards double doors
-                        // ------------------------------------
+                        "pitch": -1.0,
+                        "yaw": -120.0,
                         "type": "scene",
                         "text": "EXIT TO STAIRWAY",
                         "sceneId": "stairway"
@@ -348,10 +344,8 @@
                 "panorama": "church_museum_4k.jpg",
                 "hotSpots": [
                     {
-                        // --- CORRECTED HOTSPOT POSITION ---
-                        "pitch": -2.0, // Adjust pitch as needed
-                        "yaw": 160.0,  // Shift right towards arched door
-                        // ------------------------------------
+                        "pitch": -2.0,
+                        "yaw": 160.0,
                         "type": "scene",
                         "text": "RETURN TO INTERIOR",
                         "sceneId": "interior"
