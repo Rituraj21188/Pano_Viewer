@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PANO_VIEWER 360 HUD Walkthrough</title>
+    <title>PANO_VIEWER HUD - 360 Walkthrough</title>
     
     <!-- Pannellum CDN CSS & JS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
@@ -157,7 +157,7 @@
             font-weight: bold;
         }
 
-        /* Footer Copyright Tag */
+        /* Footer Proprietary Tag */
         .hud-copyright {
             position: absolute;
             bottom: 12px;
@@ -292,8 +292,10 @@
                 "panorama": "church_interior_4k.jpg",
                 "hotSpots": [
                     {
-                        "pitch": -3.0,
-                        "yaw": 180.0,
+                        // --- CORRECTED HOTSPOT POSITION ---
+                        "pitch": -1.0,  // Move slightly lower
+                        "yaw": -120.0,  // Move left towards double doors
+                        // ------------------------------------
                         "type": "scene",
                         "text": "EXIT TO STAIRWAY",
                         "sceneId": "stairway"
@@ -344,8 +346,10 @@
                 "panorama": "church_museum_4k.jpg",
                 "hotSpots": [
                     {
-                        "pitch": -1.0,
-                        "yaw": 180.0,
+                        // --- CORRECTED HOTSPOT POSITION ---
+                        "pitch": -2.0, // Adjust pitch as needed
+                        "yaw": 160.0,  // Shift right towards arched door
+                        // ------------------------------------
                         "type": "scene",
                         "text": "RETURN TO INTERIOR",
                         "sceneId": "interior"
