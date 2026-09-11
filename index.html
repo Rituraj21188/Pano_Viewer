@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PANO_VIEWER HUD - 360 Walkthrough</title>
+    <title>PANO_VIEWER HUD - Walkthrough Editor</title>
     
     <!-- Pannellum CDN CSS & JS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
@@ -63,13 +63,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(5, 15, 30, 0.65);
+            background: rgba(5, 15, 30, 0.75);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(0, 240, 255, 0.4);
             border-left: 4px solid #00f0ff;
             padding: 12px 24px;
             border-radius: 4px;
-            clip-path: polygon(0 0, 100% 0, 98% 100%, 0% 100%);
         }
 
         .hud-title-box {
@@ -95,14 +94,6 @@
             text-transform: uppercase;
         }
 
-        .hud-sub {
-            font-size: 12px;
-            color: #00f0ff;
-            letter-spacing: 1px;
-            margin-left: 8px;
-            opacity: 0.8;
-        }
-
         .hud-status {
             font-family: 'Orbitron', sans-serif;
             font-size: 12px;
@@ -120,6 +111,81 @@
             box-shadow: 0 0 8px #00ffaa;
         }
 
+        /* Node Repositioning Toolbar Panel */
+        #editor-panel {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            width: 310px;
+            background: rgba(5, 15, 30, 0.85);
+            border: 1px solid #00f0ff;
+            padding: 15px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .editor-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            color: #fff;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.3);
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+        }
+
+        .coord-display {
+            font-family: monospace;
+            font-size: 13px;
+            background: rgba(0, 240, 255, 0.1);
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px dashed #00f0ff;
+            color: #00ffaa;
+        }
+
+        .editor-input, .editor-select {
+            width: 100%;
+            padding: 8px;
+            background: #050b14;
+            border: 1px solid rgba(0, 240, 255, 0.5);
+            color: #00f0ff;
+            font-family: 'Rajdhani', sans-serif;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .editor-btn {
+            background: #00f0ff;
+            color: #050b14;
+            border: none;
+            padding: 8px 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .editor-btn:hover {
+            background: #00ffaa;
+            box-shadow: 0 0 10px #00ffaa;
+        }
+
+        .editor-btn.export {
+            background: #ff0055;
+            color: #fff;
+        }
+        .editor-btn.export:hover {
+            background: #ff3377;
+            box-shadow: 0 0 10px #ff0055;
+        }
+
         /* Bottom HUD Navigation Control */
         .hud-nav-bar {
             position: absolute;
@@ -133,7 +199,6 @@
             padding: 10px 20px;
             border: 1px solid rgba(0, 240, 255, 0.3);
             border-radius: 30px;
-            box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
         }
 
         .hud-btn {
@@ -147,7 +212,6 @@
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         .hud-btn:hover, .hud-btn.active {
@@ -164,45 +228,13 @@
             right: 20px;
             font-size: 11px;
             color: rgba(255, 255, 255, 0.5);
-            letter-spacing: 1px;
             font-family: 'Orbitron', sans-serif;
-        }
-
-        /* Crosshair Center Pointer */
-        .hud-crosshair {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 24px;
-            height: 24px;
-            border: 1px solid rgba(0, 240, 255, 0.3);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        .hud-crosshair::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 4px;
-            height: 4px;
-            background: #00f0ff;
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
         }
 
         @keyframes pulse {
             0% { opacity: 0.3; }
             50% { opacity: 1; }
             100% { opacity: 0.3; }
-        }
-
-        /* Custom Hotspot Styling */
-        .pnm-hotspot {
-            border-radius: 50%;
-            box-shadow: 0 0 15px #00f0ff !important;
         }
     </style>
 </head>
@@ -217,17 +249,35 @@
         <div class="hud-header">
             <div class="hud-title-box">
                 <div class="hud-logo"></div>
-                <div class="hud-title">Pano_Viewer HUD</div>
-                <div class="hud-sub">SYSTEM v2.0</div>
+                <div class="hud-title">Pano_Viewer Configurator</div>
             </div>
             <div class="hud-status">
                 <div class="status-dot"></div>
-                LINK ACTIVE
+                EDITOR MODE ENABLED
             </div>
         </div>
 
-        <!-- Center Aim -->
-        <div class="hud-crosshair"></div>
+        <!-- Node Configuration Panel -->
+        <div id="editor-panel">
+            <div class="editor-title">🎯 LIVE NODE POSITIONING</div>
+            
+            <div class="coord-display">
+                PITCH: <span id="val-pitch">0.0</span>°<br>
+                YAW: <span id="val-yaw">0.0</span>°
+            </div>
+
+            <input type="text" id="hotspot-text" class="editor-input" placeholder="Hotspot Label (e.g. GOTO HALL)" value="ENTER INTERIOR">
+            
+            <select id="target-scene" class="editor-select">
+                <option value="stairway">Target: Stairway</option>
+                <option value="interior">Target: Interior</option>
+                <option value="meeting_room">Target: Meeting Room</option>
+                <option value="museum">Target: Museum</option>
+            </select>
+
+            <button class="editor-btn" onclick="addNodeToCurrentScene()">➕ Place Node Here</button>
+            <button class="editor-btn export" onclick="exportConfig()">💾 Export Saved Config</button>
+        </div>
 
         <!-- Navigation HUD Toolbar -->
         <div class="hud-nav-bar">
@@ -244,133 +294,138 @@
     </div>
 
 <script>
-    // Initialize Interconnected 360 Scenes
+    // Config JSON Structure
+    var tourScenes = {
+        "stairway": {
+            "title": "Church Stairway Entrance",
+            "hfov": 100,
+            "pitch": 0,
+            "yaw": 0,
+            "type": "equirectangular",
+            "panorama": "church_stairway_4k.jpg",
+            "hotSpots": [
+                { "pitch": 12.0, "yaw": 18.0, "type": "scene", "text": "ENTER INTERIOR MAIN HALL", "sceneId": "interior" },
+                { "pitch": -10.0, "yaw": -25.0, "type": "scene", "text": "GO TO MUSEUM", "sceneId": "museum" }
+            ]
+        },
+        "interior": {
+            "title": "Church Interior Hall",
+            "hfov": 100,
+            "pitch": 0,
+            "yaw": 0,
+            "type": "equirectangular",
+            "panorama": "church_interior_4k.jpg",
+            "hotSpots": [
+                { "pitch": -1.0, "yaw": -120.0, "type": "scene", "text": "EXIT TO STAIRWAY", "sceneId": "stairway" },
+                { "pitch": 0.0, "yaw": 60.0, "type": "scene", "text": "ENTER MEETING ROOM", "sceneId": "meeting_room" },
+                { "pitch": 0.0, "yaw": -60.0, "type": "scene", "text": "ENTER MUSEUM", "sceneId": "museum" }
+            ]
+        },
+        "meeting_room": {
+            "title": "Church Meeting Room",
+            "hfov": 100,
+            "pitch": 0,
+            "yaw": 0,
+            "type": "equirectangular",
+            "panorama": "church_meeting_room_4k.jpg",
+            "hotSpots": [
+                { "pitch": -2.0, "yaw": 180.0, "type": "scene", "text": "RETURN TO INTERIOR", "sceneId": "interior" }
+            ]
+        },
+        "museum": {
+            "title": "Church Museum",
+            "hfov": 100,
+            "pitch": 0,
+            "yaw": 0,
+            "type": "equirectangular",
+            "panorama": "church_museum_4k.jpg",
+            "hotSpots": [
+                { "pitch": -2.0, "yaw": 160.0, "type": "scene", "text": "RETURN TO INTERIOR", "sceneId": "interior" }
+            ]
+        }
+    };
+
+    var currentClickCoords = { pitch: 0, yaw: 0 };
+
+    // Initialize Viewer
     var viewer = pannellum.viewer('panorama', {
         "default": {
             "firstScene": "stairway",
             "author": "Rituraj_Gogoi",
             "sceneFadeDuration": 1000,
             "autoLoad": true,
-            "showControls": false, // Hide default controls for custom HUD
-            "compass": false
+            "showControls": false,
+            "hotSpotDebug": false
         },
+        "scenes": tourScenes
+    });
 
-        "scenes": {
-            // Scene 1: Stairway
-            "stairway": {
-                "title": "Church Stairway Entrance",
-                "hfov": 100,
-                "pitch": 0,
-                "yaw": 0,
-                "type": "equirectangular",
-                "panorama": "church_stairway_4k.jpg",
-                "hotSpots": [
-                    {
-                        "pitch": 12.0,
-                        "yaw": 18.0,
-                        "type": "scene",
-                        "text": "ENTER INTERIOR MAIN HALL",
-                        "sceneId": "interior"
-                    },
-                    {
-                        "pitch": -10.0,
-                        "yaw": -25.0,
-                        "type": "scene",
-                        "text": "GO TO MUSEUM",
-                        "sceneId": "museum"
-                    }
-                ]
-            },
+    // Real-Time Position Mouse Detection
+    document.getElementById('panorama').addEventListener('mousedown', function(event) {
+        var coords = viewer.canvasToFinalBounds(event);
+        if(coords) {
+            currentClickCoords.pitch = parseFloat(coords[0].toFixed(2));
+            currentClickCoords.yaw = parseFloat(coords[1].toFixed(2));
 
-            // Scene 2: Interior Main Hall
-            "interior": {
-                "title": "Church Interior Hall",
-                "hfov": 100,
-                "pitch": 0,
-                "yaw": 0,
-                "type": "equirectangular",
-                "panorama": "church_interior_4k.jpg",
-                "hotSpots": [
-                    {
-                        "pitch": -1.0,
-                        "yaw": -120.0,
-                        "type": "scene",
-                        "text": "EXIT TO STAIRWAY",
-                        "sceneId": "stairway"
-                    },
-                    {
-                        "pitch": 0.0,
-                        "yaw": 60.0,
-                        "type": "scene",
-                        "text": "ENTER MEETING ROOM",
-                        "sceneId": "meeting_room"
-                    },
-                    {
-                        "pitch": 0.0,
-                        "yaw": -60.0,
-                        "type": "scene",
-                        "text": "ENTER MUSEUM",
-                        "sceneId": "museum"
-                    }
-                ]
-            },
-
-            // Scene 3: Meeting Room
-            "meeting_room": {
-                "title": "Church Meeting Room",
-                "hfov": 100,
-                "pitch": 0,
-                "yaw": 0,
-                "type": "equirectangular",
-                "panorama": "church_meeting_room_4k.jpg",
-                "hotSpots": [
-                    {
-                        "pitch": -2.0,
-                        "yaw": 180.0,
-                        "type": "scene",
-                        "text": "RETURN TO INTERIOR",
-                        "sceneId": "interior"
-                    }
-                ]
-            },
-
-            // Scene 4: Museum
-            "museum": {
-                "title": "Church Museum",
-                "hfov": 100,
-                "pitch": 0,
-                "yaw": 0,
-                "type": "equirectangular",
-                "panorama": "church_museum_4k.jpg",
-                "hotSpots": [
-                    {
-                        "pitch": -2.0,
-                        "yaw": 160.0,
-                        "type": "scene",
-                        "text": "RETURN TO INTERIOR",
-                        "sceneId": "interior"
-                    }
-                ]
-            }
+            document.getElementById('val-pitch').innerText = currentClickCoords.pitch;
+            document.getElementById('val-yaw').innerText = currentClickCoords.yaw;
         }
     });
 
-    // Custom Switch Scene Handler with HUD Highlight Updates
+    // Add New Hotspot Node Dynamically
+    function addNodeToCurrentScene() {
+        var activeScene = viewer.getScene();
+        var labelText = document.getElementById('hotspot-text').value;
+        var targetScene = document.getElementById('target-scene').value;
+
+        var newHotspot = {
+            "pitch": currentClickCoords.pitch,
+            "yaw": currentClickCoords.yaw,
+            "type": "scene",
+            "text": labelText,
+            "sceneId": targetScene
+        };
+
+        // Add Hotspot to Live View
+        viewer.addHotSpot(newHotspot, activeScene);
+
+        // Push to local data tree
+        tourScenes[activeScene].hotSpots.push(newHotspot);
+
+        alert('Node Placed in ' + activeScene + '!\nPitch: ' + currentClickCoords.pitch + ' | Yaw: ' + currentClickCoords.yaw);
+    }
+
+    // Export & Download JSON Config file for permanent save
+    function exportConfig() {
+        var formattedData = "var tourScenes = " + JSON.stringify(tourScenes, null, 4) + ";";
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(formattedData);
+        alert("Configuration copied to clipboard! You can replace 'var tourScenes' in your code now.");
+
+        // Create downloadable JSON file
+        var blob = new Blob([formattedData], { type: "text/javascript" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "scenes_config.js";
+        a.click();
+    }
+
+    // Switch Scene Handlers
     function switchScene(sceneId) {
         viewer.loadScene(sceneId);
-        
-        // Update HUD Active Button State
+        updateNavState(sceneId);
+    }
+
+    viewer.on('scenechange', function(sceneId) {
+        updateNavState(sceneId);
+    });
+
+    function updateNavState(sceneId) {
         document.querySelectorAll('.hud-btn').forEach(btn => btn.classList.remove('active'));
         const activeBtn = document.getElementById('btn-' + sceneId);
         if (activeBtn) activeBtn.classList.add('active');
     }
-
-    // Sync HUD active button when scene changes via hotspot click
-    viewer.on('scenechange', function(sceneId) {
-        document.querySelectorAll('.hud-btn').forEach(btn => btn.classList.remove('active'));
-        const activeBtn = document.getElementById('btn-' + sceneId);
-        if (activeBtn) activeBtn.classList.add('active');
-    });
 </script>
 
 </body>
