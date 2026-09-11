@@ -3,81 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PANO_VIEWER Three.js 3D Editor</title>
+    <title>Pano_Viewer - 360 Walkthrough</title>
 
-    <!-- Three.js Engine & OrbitControls CDN -->
+    <!-- Three.js Engine CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
 
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Rajdhani', sans-serif; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
 
-        #webgl-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        #webgl-container {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
 
         /* HUD TOP BAR */
         .hud-header {
-            position: absolute; top: 15px; left: 15px; right: 15px; z-index: 10;
-            background: rgba(5, 15, 30, 0.85); border: 1px solid #00f0ff; border-left: 5px solid #00f0ff;
-            padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
-            backdrop-filter: blur(8px); pointer-events: none;
-        }
-        .hud-title { font-family: 'Orbitron', sans-serif; font-size: 16px; color: #fff; letter-spacing: 2px; }
-        .hud-badge { font-size: 11px; background: #00ffaa; color: #000; padding: 2px 8px; font-weight: bold; border-radius: 3px; }
-
-        /* EDITOR PANEL */
-        #editor-panel {
-            position: absolute; top: 75px; right: 15px; z-index: 1000; width: 330px;
-            background: rgba(5, 15, 30, 0.92); border: 1px solid rgba(0,240,255,0.6);
-            padding: 15px; border-radius: 8px; color: #00f0ff; backdrop-filter: blur(12px);
-            box-shadow: 0 0 25px rgba(0, 240, 255, 0.3); display: flex; flex-direction: column; gap: 8px;
-        }
-        .panel-title { font-family: 'Orbitron', sans-serif; font-size: 12px; color: #fff; border-bottom: 1px solid rgba(0,240,255,0.3); padding-bottom: 4px; }
-        
-        .field-group { display: flex; flex-direction: column; gap: 3px; }
-        .field-label { font-size: 11px; color: rgba(255,255,255,0.7); }
-        .editor-input, .editor-select {
-            background: #050b14; border: 1px solid #00f0ff; color: #00f0ff;
-            padding: 8px; font-family: 'Rajdhani', sans-serif; font-size: 13px; outline: none; border-radius: 4px;
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            z-index: 10;
+            background: rgba(5, 15, 30, 0.75);
+            border: 1px solid #00f0ff;
+            border-left: 5px solid #00f0ff;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(8px);
+            pointer-events: none;
         }
 
-        .btn {
-            background: #00f0ff; color: #000; border: none; padding: 10px;
-            font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: bold;
-            cursor: pointer; transition: 0.2s; border-radius: 4px; text-transform: uppercase;
+        .hud-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            color: #fff;
+            letter-spacing: 2px;
         }
-        .btn:hover { background: #00ffaa; box-shadow: 0 0 12px #00ffaa; }
-        .btn-danger { background: #ff0055; color: #fff; }
-        .btn-danger:hover { background: #ff3377; box-shadow: 0 0 12px #ff0055; }
-        .btn-save { background: #00ffaa; color: #000; }
 
-        /* CENTER AIM CROSSHAIR */
+        .hud-badge {
+            font-size: 11px;
+            background: #00ffaa;
+            color: #000;
+            padding: 2px 8px;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+
+        /* CENTER RETICLE */
         .center-crosshair {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 24px; height: 24px; border: 1px solid rgba(0, 240, 255, 0.6); border-radius: 50%;
-            pointer-events: none; z-index: 5;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 18px;
+            height: 18px;
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 5;
         }
+
         .center-crosshair::after {
-            content: ''; position: absolute; top: 50%; left: 50%;
-            width: 6px; height: 6px; background: #00f0ff; transform: translate(-50%, -50%); border-radius: 50%;
-            box-shadow: 0 0 8px #00f0ff;
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 4px;
+            background: #00f0ff;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            box-shadow: 0 0 6px #00f0ff;
         }
 
-        /* BOTTOM NAVBAR */
+        /* ROOM NAVIGATION BAR */
         .hud-nav {
-            position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 1000;
-            display: flex; gap: 10px; background: rgba(5, 15, 30, 0.85); padding: 8px 16px;
-            border-radius: 20px; border: 1px solid #00f0ff; backdrop-filter: blur(8px);
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            background: rgba(5, 15, 30, 0.85);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #00f0ff;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
         }
-        .nav-btn {
-            background: transparent; border: 1px solid rgba(0,240,255,0.4); color: #00f0ff;
-            padding: 6px 14px; font-family: 'Orbitron', sans-serif; font-size: 11px; cursor: pointer; border-radius: 12px;
-        }
-        .nav-btn.active, .nav-btn:hover { background: #00f0ff; color: #000; font-weight: bold; }
 
-        .hud-copy { position: absolute; bottom: 10px; right: 15px; z-index: 10; font-size: 10px; color: rgba(255,255,255,0.4); font-family: 'Orbitron'; pointer-events: none; }
+        .nav-btn {
+            background: transparent;
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            color: #00f0ff;
+            padding: 6px 14px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn.active, .nav-btn:hover {
+            background: #00f0ff;
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 10px #00f0ff;
+        }
+
+        .hud-copy {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            z-index: 10;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.4);
+            font-family: 'Orbitron';
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -86,32 +151,8 @@
     <div class="center-crosshair"></div>
 
     <div class="hud-header">
-        <div class="hud-title">PANO_VIEWER THREE.JS 3D EDITOR</div>
-        <div class="hud-badge">RAYCASTING: ACTIVE</div>
-    </div>
-
-    <!-- CONTROL PANEL -->
-    <div id="editor-panel">
-        <div class="panel-title">🎯 LIVE 3D NODE PLACEMENT</div>
-        
-        <div class="field-group">
-            <span class="field-label">NODE LABEL TEXT</span>
-            <input type="text" id="node-text" class="editor-input" value="ENTER ROOM">
-        </div>
-
-        <div class="field-group">
-            <span class="field-label">TARGET DESTINATION ROOM</span>
-            <select id="node-target" class="editor-select">
-                <option value="stairway">Stairway</option>
-                <option value="interior">Interior</option>
-                <option value="meeting_room">Meeting Room</option>
-                <option value="museum">Museum</option>
-            </select>
-        </div>
-
-        <button class="btn" onclick="placeNodeAtCenterAim()">🎯 PLACE NODE AT CENTER AIM</button>
-        <button class="btn btn-danger" onclick="deleteSelectedNode()">🗑️ DELETE SELECTED NODE</button>
-        <button class="btn btn-save" onclick="saveConfigurationPermanently()">💾 SAVE LAYOUT TO APP</button>
+        <div class="hud-title">PANO_VIEWER HUD TOUR</div>
+        <div class="hud-badge">SYSTEM ACTIVE</div>
     </div>
 
     <!-- ROOM NAVIGATION BAR -->
@@ -125,43 +166,100 @@
     <div class="hud-copy">PROPRIETARY TOOL © Rituraj_Gogoi</div>
 
 <script>
-    // DATA TREE & PERSISTENT STORAGE
-    var defaultData = {
+    // HARDCODED PERMANENT APP CONFIGURATION
+    var appData = {
         "scenes": {
             "stairway": {
                 "panorama": "church_stairway_4k.jpg",
                 "nodes": [
-                    { "id": "node_1", "x": 12.5, "y": 8.2, "z": -47.1, "text": "ENTER INTERIOR MAIN HALL", "target": "interior" },
-                    { "id": "node_2", "x": -22.1, "y": -5.4, "z": -44.2, "text": "GO TO MUSEUM", "target": "museum" }
+                    {
+                        "id": "node_1789124474474",
+                        "x": 34.81,
+                        "y": 0.26,
+                        "z": -35.79,
+                        "text": "ENTER INTERIOR MAIN HALL",
+                        "target": "interior"
+                    }
                 ]
             },
             "interior": {
                 "panorama": "church_interior_4k.jpg",
                 "nodes": [
-                    { "id": "node_3", "x": -42.1, "y": -2.1, "z": 26.5, "text": "EXIT TO STAIRWAY", "target": "stairway" }
+                    {
+                        "id": "node_1789124537805",
+                        "x": -40.43,
+                        "y": -2,
+                        "z": -29.27,
+                        "text": "ENTER MEETING ROOM",
+                        "target": "meeting_room"
+                    },
+                    {
+                        "id": "node_1789124561975",
+                        "x": -29.37,
+                        "y": -1.05,
+                        "z": 40.42,
+                        "text": "EXIT TO STAIRWAY",
+                        "target": "stairway"
+                    },
+                    {
+                        "id": "node_1789124581269",
+                        "x": 40.29,
+                        "y": -1.74,
+                        "z": 29.48,
+                        "text": "ENTER MUSEUM",
+                        "target": "museum"
+                    }
                 ]
             },
             "meeting_room": {
                 "panorama": "church_meeting_room_4k.jpg",
                 "nodes": [
-                    { "id": "node_4", "x": 0.0, "y": -2.0, "z": 49.0, "text": "RETURN TO INTERIOR", "target": "interior" }
+                    {
+                        "id": "node_1789124606895",
+                        "x": -25.62,
+                        "y": -2.09,
+                        "z": 42.8,
+                        "text": "GOTO STAIRWAY",
+                        "target": "stairway"
+                    },
+                    {
+                        "id": "node_1789124615359",
+                        "x": 45.07,
+                        "y": 1.57,
+                        "z": -21.4,
+                        "text": "RETURN TO INTERIOR",
+                        "target": "interior"
+                    }
                 ]
             },
             "museum": {
                 "panorama": "church_museum_4k.jpg",
                 "nodes": [
-                    { "id": "node_5", "x": 18.0, "y": -1.5, "z": 46.2, "text": "RETURN TO INTERIOR", "target": "interior" }
+                    {
+                        "id": "node_1789124629455",
+                        "x": 0.35,
+                        "y": -1.66,
+                        "z": 49.92,
+                        "text": "RETURN TO INTERIOR",
+                        "target": "interior"
+                    },
+                    {
+                        "id": "node_1789124636103",
+                        "x": -49.51,
+                        "y": 0.17,
+                        "z": -6.52,
+                        "text": "GOTO STAIRWAY",
+                        "target": "stairway"
+                    }
                 ]
             }
         }
     };
 
-    var appData = JSON.parse(localStorage.getItem('THREE_PANO_CONFIG')) || defaultData;
     var activeScene = 'stairway';
-    var selectedNodeMesh = null;
     var nodeMeshes = [];
 
-    // THREE.JS CORE VARIABLES
+    // THREE.JS SYSTEM VARIABLES
     var scene, camera, renderer, sphereMesh, raycaster, mouse;
     var isUserInteracting = false, onPointerDownPointerX = 0, onPointerDownPointerY = 0;
     var lon = 0, onPointerDownLon = 0, lat = 0, onPointerDownLat = 0, phi = 0, theta = 0;
@@ -176,9 +274,9 @@
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1100);
         camera.target = new THREE.Vector3(0, 0, 0);
 
-        // 3D Sphere Geometry
+        // 3D Panorama Sphere
         var geometry = new THREE.SphereGeometry(500, 60, 40);
-        geometry.scale(-1, 1, 1); // Invert sphere inside out
+        geometry.scale(-1, 1, 1);
 
         var textureLoader = new THREE.TextureLoader();
         var texture = textureLoader.load(appData.scenes[activeScene].panorama);
@@ -195,7 +293,7 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         container.appendChild(renderer.domElement);
 
-        // DRAG ENGINE & CONTROLS
+        // DRAG ENGINE & CLICK EVENTS
         document.addEventListener('pointerdown', onPointerDown);
         document.addEventListener('pointermove', onPointerMove);
         document.addEventListener('pointerup', onPointerUp);
@@ -204,15 +302,13 @@
         renderNodes3D();
     }
 
-    // RENDER HOTSPOTS DIRECTLY INTO 3D SPACE
+    // RENDER 3D NODES
     function renderNodes3D() {
-        // Clear existing node meshes
         nodeMeshes.forEach(mesh => scene.remove(mesh));
         nodeMeshes = [];
 
         var nodes = appData.scenes[activeScene].nodes;
         nodes.forEach(function(n) {
-            // Create glowing 3D Node Sphere
             var nodeGeo = new THREE.SphereGeometry(2.5, 16, 16);
             var nodeMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, wireframe: true });
             var nodeMesh = new THREE.Mesh(nodeGeo, nodeMat);
@@ -225,51 +321,8 @@
         });
     }
 
-    // PLACE NODE AT CENTER AIM
-    function placeNodeAtCenterAim() {
-        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-        var intersects = raycaster.intersectObject(sphereMesh);
-
-        if (intersects.length > 0) {
-            var point = intersects[0].point;
-
-            // Scale vector closer inside the sphere for visibility
-            var scaledPoint = point.clone().multiplyScalar(0.1);
-
-            var text = document.getElementById('node-text').value;
-            var target = document.getElementById('node-target').value;
-            var newId = "node_" + Date.now();
-
-            var newNode = {
-                "id": newId,
-                "x": parseFloat(scaledPoint.x.toFixed(2)),
-                "y": parseFloat(scaledPoint.y.toFixed(2)),
-                "z": parseFloat(scaledPoint.z.toFixed(2)),
-                "text": text,
-                "target": target
-            };
-
-            appData.scenes[activeScene].nodes.push(newNode);
-            renderNodes3D();
-
-            alert("3D Node Placed Successfully at current view vector!");
-        }
-    }
-
-    // DELETE SELECTED NODE
-    function deleteSelectedNode() {
-        if (!selectedNodeMesh) return alert("Click a 3D Node sphere in the panorama to select it first!");
-        
-        var idToDelete = selectedNodeMesh.userData.id;
-        appData.scenes[activeScene].nodes = appData.scenes[activeScene].nodes.filter(n => n.id !== idToDelete);
-        
-        selectedNodeMesh = null;
-        renderNodes3D();
-    }
-
-    // DRAG ROTATION ENGINE
     function onPointerDown(event) {
-        if (event.clientY < 60 || event.clientX > window.innerWidth - 340) return; // Prevent drag when clicking UI
+        if (event.clientY > window.innerHeight - 80) return; // Ignore click on bottom toolbar
 
         isUserInteracting = true;
         onPointerDownPointerX = event.clientX;
@@ -278,7 +331,7 @@
         onPointerDownLon = lon;
         onPointerDownLat = lat;
 
-        // RAYCAST CLICK ON 3D NODES
+        // CHECK IF CLICKED ON A 3D NODE MARKER
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -287,16 +340,7 @@
 
         if (intersects.length > 0) {
             var clickedNode = intersects[0].object;
-            selectedNodeMesh = clickedNode;
-
-            // Highlight Node
-            nodeMeshes.forEach(m => m.material.color.setHex(0x00f0ff));
-            clickedNode.material.color.setHex(0xff0055);
-
-            // Double Click to Navigate
-            if (event.detail === 2) {
-                loadRoom(clickedNode.userData.target);
-            }
+            loadRoom(clickedNode.userData.target);
         }
     }
 
@@ -327,10 +371,10 @@
 
         camera.lookAt(camera.target);
 
-        // Pulse selected Node
-        if (selectedNodeMesh) {
-            selectedNodeMesh.rotation.y += 0.05;
-        }
+        // Spin nodes slowly
+        nodeMeshes.forEach(mesh => {
+            mesh.rotation.y += 0.02;
+        });
 
         renderer.render(scene, camera);
     }
@@ -341,10 +385,9 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    // ROOM SWITCHING
+    // ROOM SWITCHING FUNCTION
     function loadRoom(roomKey) {
         activeScene = roomKey;
-        selectedNodeMesh = null;
 
         var textureLoader = new THREE.TextureLoader();
         textureLoader.load(appData.scenes[roomKey].panorama, function(tex) {
@@ -356,11 +399,6 @@
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         var btn = document.getElementById('btn-' + roomKey);
         if (btn) btn.classList.add('active');
-    }
-
-    function saveConfigurationPermanently() {
-        localStorage.setItem('THREE_PANO_CONFIG', JSON.stringify(appData));
-        alert("LAYOUT SAVED SUCCESSFULLY!\n3D Node coordinates are stored inside browser memory and will auto-load.");
     }
 </script>
 </body>
