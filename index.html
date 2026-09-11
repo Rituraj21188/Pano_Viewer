@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pano_Viewer - 3D Visual Node Editor</title>
-    
-    <!-- Pannellum Engine -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    <title>PANO_VIEWER Three.js 3D Editor</title>
+
+    <!-- Three.js Engine & OrbitControls CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
@@ -16,9 +15,9 @@
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body, html { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Rajdhani', sans-serif; }
 
-        #panorama { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        #webgl-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
 
-        /* HUD TOP HEADER */
+        /* HUD TOP BAR */
         .hud-header {
             position: absolute; top: 15px; left: 15px; right: 15px; z-index: 10;
             background: rgba(5, 15, 30, 0.85); border: 1px solid #00f0ff; border-left: 5px solid #00f0ff;
@@ -28,7 +27,7 @@
         .hud-title { font-family: 'Orbitron', sans-serif; font-size: 16px; color: #fff; letter-spacing: 2px; }
         .hud-badge { font-size: 11px; background: #00ffaa; color: #000; padding: 2px 8px; font-weight: bold; border-radius: 3px; }
 
-        /* VISUAL 3D EDITOR CONTROL PANEL */
+        /* EDITOR PANEL */
         #editor-panel {
             position: absolute; top: 75px; right: 15px; z-index: 1000; width: 330px;
             background: rgba(5, 15, 30, 0.92); border: 1px solid rgba(0,240,255,0.6);
@@ -50,35 +49,23 @@
             cursor: pointer; transition: 0.2s; border-radius: 4px; text-transform: uppercase;
         }
         .btn:hover { background: #00ffaa; box-shadow: 0 0 12px #00ffaa; }
-        .btn-center { background: #ffe600; color: #000; }
-        .btn-center:hover { background: #fff066; box-shadow: 0 0 12px #ffe600; }
         .btn-danger { background: #ff0055; color: #fff; }
         .btn-danger:hover { background: #ff3377; box-shadow: 0 0 12px #ff0055; }
         .btn-save { background: #00ffaa; color: #000; }
 
-        /* LIVE NODE STYLING */
-        .node-marker {
-            width: 36px; height: 36px; background: rgba(0, 240, 255, 0.3);
-            border: 2px solid #00f0ff; border-radius: 50%; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 15px #00f0ff; transition: all 0.2s;
-        }
-        .node-marker:hover { transform: scale(1.25); background: rgba(0, 255, 170, 0.5); border-color: #00ffaa; }
-        .node-marker.selected { border-color: #ff0055; box-shadow: 0 0 25px #ff0055; background: rgba(255,0,85,0.4); }
-        .node-marker::after { content: '🎯'; font-size: 16px; }
-
-        /* CENTER CROSSHAIR POINTER */
+        /* CENTER AIM CROSSHAIR */
         .center-crosshair {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 20px; height: 20px; border: 1px solid rgba(0, 240, 255, 0.5); border-radius: 50%;
+            width: 24px; height: 24px; border: 1px solid rgba(0, 240, 255, 0.6); border-radius: 50%;
             pointer-events: none; z-index: 5;
         }
         .center-crosshair::after {
             content: ''; position: absolute; top: 50%; left: 50%;
-            width: 4px; height: 4px; background: #00f0ff; transform: translate(-50%, -50%); border-radius: 50%;
+            width: 6px; height: 6px; background: #00f0ff; transform: translate(-50%, -50%); border-radius: 50%;
+            box-shadow: 0 0 8px #00f0ff;
         }
 
-        /* BOTTOM TOOLBAR NAVIGATION */
+        /* BOTTOM NAVBAR */
         .hud-nav {
             position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 1000;
             display: flex; gap: 10px; background: rgba(5, 15, 30, 0.85); padding: 8px 16px;
@@ -95,34 +82,21 @@
 </head>
 <body>
 
-    <!-- PANORAMA CANVAS -->
-    <div id="panorama"></div>
-
-    <!-- CENTER RETICLE AIM -->
+    <div id="webgl-container"></div>
     <div class="center-crosshair"></div>
 
-    <!-- HUD OVERLAY -->
     <div class="hud-header">
-        <div class="hud-title">PANO_VIEWER 3D EDITOR</div>
-        <div class="hud-badge">STATUS: ANGLE LOOKUP ACTIVE</div>
+        <div class="hud-title">PANO_VIEWER THREE.JS 3D EDITOR</div>
+        <div class="hud-badge">RAYCASTING: ACTIVE</div>
     </div>
 
-    <!-- 3D EDITOR CONTROLLER -->
+    <!-- CONTROL PANEL -->
     <div id="editor-panel">
-        <div class="panel-title">🎯 LIVE NODE POSITIONING</div>
+        <div class="panel-title">🎯 LIVE 3D NODE PLACEMENT</div>
         
         <div class="field-group">
-            <span class="field-label">TARGET VIEWING ANGLE</span>
-            <div style="font-family: monospace; font-size: 13px; color:#00ffaa; background: rgba(0,240,255,0.1); padding: 6px; border-radius: 4px;">
-                PITCH: <span id="lbl-pitch">0.00</span>° | YAW: <span id="lbl-yaw">0.00</span>°
-            </div>
-        </div>
-
-        <button class="btn btn-center" onclick="captureCenterViewAngle()">🎯 CAPTURE CENTER VIEW ANGLE</button>
-
-        <div class="field-group">
             <span class="field-label">NODE LABEL TEXT</span>
-            <input type="text" id="node-text" class="editor-input" value="ENTER INTERIOR">
+            <input type="text" id="node-text" class="editor-input" value="ENTER ROOM">
         </div>
 
         <div class="field-group">
@@ -135,12 +109,12 @@
             </select>
         </div>
 
-        <button class="btn" onclick="createNewNode()">➕ PLACE NODE AT CAPTURED ANGLE</button>
+        <button class="btn" onclick="placeNodeAtCenterAim()">🎯 PLACE NODE AT CENTER AIM</button>
         <button class="btn btn-danger" onclick="deleteSelectedNode()">🗑️ DELETE SELECTED NODE</button>
-        <button class="btn btn-save" onclick="saveConfigurationPermanently()" style="margin-top:4px;">💾 SAVE LAYOUT TO APP</button>
+        <button class="btn btn-save" onclick="saveConfigurationPermanently()">💾 SAVE LAYOUT TO APP</button>
     </div>
 
-    <!-- ROOM SWITCHING TOOLBAR -->
+    <!-- ROOM NAVIGATION BAR -->
     <div class="hud-nav">
         <button class="nav-btn active" id="btn-stairway" onclick="loadRoom('stairway')">Stairway</button>
         <button class="nav-btn" id="btn-interior" onclick="loadRoom('interior')">Interior</button>
@@ -151,173 +125,233 @@
     <div class="hud-copy">PROPRIETARY TOOL © Rituraj_Gogoi</div>
 
 <script>
-    // DEFAULT PANORAMA & NODE TREE
+    // DATA TREE & PERSISTENT STORAGE
     var defaultData = {
         "scenes": {
             "stairway": {
-                "title": "Church Stairway Entrance",
                 "panorama": "church_stairway_4k.jpg",
                 "nodes": [
-                    { "id": "node_1", "pitch": 12.0, "yaw": 18.0, "text": "ENTER INTERIOR MAIN HALL", "target": "interior" },
-                    { "id": "node_2", "pitch": -10.0, "yaw": -25.0, "text": "GO TO MUSEUM", "target": "museum" }
+                    { "id": "node_1", "x": 12.5, "y": 8.2, "z": -47.1, "text": "ENTER INTERIOR MAIN HALL", "target": "interior" },
+                    { "id": "node_2", "x": -22.1, "y": -5.4, "z": -44.2, "text": "GO TO MUSEUM", "target": "museum" }
                 ]
             },
             "interior": {
-                "title": "Church Interior Hall",
                 "panorama": "church_interior_4k.jpg",
                 "nodes": [
-                    { "id": "node_3", "pitch": -1.0, "yaw": -120.0, "text": "EXIT TO STAIRWAY", "target": "stairway" },
-                    { "id": "node_4", "pitch": 0.0, "yaw": 60.0, "text": "ENTER MEETING ROOM", "target": "meeting_room" },
-                    { "id": "node_5", "pitch": 0.0, "yaw": -60.0, "text": "ENTER MUSEUM", "target": "museum" }
+                    { "id": "node_3", "x": -42.1, "y": -2.1, "z": 26.5, "text": "EXIT TO STAIRWAY", "target": "stairway" }
                 ]
             },
             "meeting_room": {
-                "title": "Church Meeting Room",
                 "panorama": "church_meeting_room_4k.jpg",
                 "nodes": [
-                    { "id": "node_6", "pitch": -2.0, "yaw": 180.0, "text": "RETURN TO INTERIOR", "target": "interior" }
+                    { "id": "node_4", "x": 0.0, "y": -2.0, "z": 49.0, "text": "RETURN TO INTERIOR", "target": "interior" }
                 ]
             },
             "museum": {
-                "title": "Church Museum",
                 "panorama": "church_museum_4k.jpg",
                 "nodes": [
-                    { "id": "node_7", "pitch": -2.0, "yaw": 160.0, "text": "RETURN TO INTERIOR", "target": "interior" }
+                    { "id": "node_5", "x": 18.0, "y": -1.5, "z": 46.2, "text": "RETURN TO INTERIOR", "target": "interior" }
                 ]
             }
         }
     };
 
-    var appData = JSON.parse(localStorage.getItem('PANO_EDITOR_CONFIG')) || defaultData;
-    var viewer, activeScene = 'stairway';
-    var selectedAngle = { pitch: 0, yaw: 0 };
-    var selectedNodeId = null;
+    var appData = JSON.parse(localStorage.getItem('THREE_PANO_CONFIG')) || defaultData;
+    var activeScene = 'stairway';
+    var selectedNodeMesh = null;
+    var nodeMeshes = [];
 
-    function buildPannellumScenes() {
-        var formattedScenes = {};
-        Object.keys(appData.scenes).forEach(function(roomKey) {
-            var room = appData.scenes[roomKey];
-            formattedScenes[roomKey] = {
-                "title": room.title,
-                "type": "equirectangular",
-                "panorama": room.panorama,
-                "hotSpots": room.nodes.map(function(n) {
-                    return {
-                        "id": n.id,
-                        "pitch": n.pitch,
-                        "yaw": n.yaw,
-                        "cssClass": "node-marker",
-                        "createTooltipFunc": function(hotSpotDiv) {
-                            hotSpotDiv.title = n.text + " ➔ " + n.target;
-                            hotSpotDiv.onclick = function(e) {
-                                e.stopPropagation();
-                                selectedNodeId = n.id;
-                                highlightSelectedNode(hotSpotDiv);
-                            };
-                            hotSpotDiv.ondblclick = function(e) {
-                                e.stopPropagation();
-                                loadRoom(n.target);
-                            };
-                        }
-                    };
-                })
+    // THREE.JS CORE VARIABLES
+    var scene, camera, renderer, sphereMesh, raycaster, mouse;
+    var isUserInteracting = false, onPointerDownPointerX = 0, onPointerDownPointerY = 0;
+    var lon = 0, onPointerDownLon = 0, lat = 0, onPointerDownLat = 0, phi = 0, theta = 0;
+
+    initThreeJS();
+    animate();
+
+    function initThreeJS() {
+        var container = document.getElementById('webgl-container');
+
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1100);
+        camera.target = new THREE.Vector3(0, 0, 0);
+
+        // 3D Sphere Geometry
+        var geometry = new THREE.SphereGeometry(500, 60, 40);
+        geometry.scale(-1, 1, 1); // Invert sphere inside out
+
+        var textureLoader = new THREE.TextureLoader();
+        var texture = textureLoader.load(appData.scenes[activeScene].panorama);
+        var material = new THREE.MeshBasicMaterial({ map: texture });
+
+        sphereMesh = new THREE.Mesh(geometry, material);
+        scene.add(sphereMesh);
+
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        // DRAG ENGINE & CONTROLS
+        document.addEventListener('pointerdown', onPointerDown);
+        document.addEventListener('pointermove', onPointerMove);
+        document.addEventListener('pointerup', onPointerUp);
+        window.addEventListener('resize', onWindowResize);
+
+        renderNodes3D();
+    }
+
+    // RENDER HOTSPOTS DIRECTLY INTO 3D SPACE
+    function renderNodes3D() {
+        // Clear existing node meshes
+        nodeMeshes.forEach(mesh => scene.remove(mesh));
+        nodeMeshes = [];
+
+        var nodes = appData.scenes[activeScene].nodes;
+        nodes.forEach(function(n) {
+            // Create glowing 3D Node Sphere
+            var nodeGeo = new THREE.SphereGeometry(2.5, 16, 16);
+            var nodeMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, wireframe: true });
+            var nodeMesh = new THREE.Mesh(nodeGeo, nodeMat);
+
+            nodeMesh.position.set(n.x, n.y, n.z);
+            nodeMesh.userData = n;
+
+            scene.add(nodeMesh);
+            nodeMeshes.push(nodeMesh);
+        });
+    }
+
+    // PLACE NODE AT CENTER AIM
+    function placeNodeAtCenterAim() {
+        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+        var intersects = raycaster.intersectObject(sphereMesh);
+
+        if (intersects.length > 0) {
+            var point = intersects[0].point;
+
+            // Scale vector closer inside the sphere for visibility
+            var scaledPoint = point.clone().multiplyScalar(0.1);
+
+            var text = document.getElementById('node-text').value;
+            var target = document.getElementById('node-target').value;
+            var newId = "node_" + Date.now();
+
+            var newNode = {
+                "id": newId,
+                "x": parseFloat(scaledPoint.x.toFixed(2)),
+                "y": parseFloat(scaledPoint.y.toFixed(2)),
+                "z": parseFloat(scaledPoint.z.toFixed(2)),
+                "text": text,
+                "target": target
             };
-        });
-        return formattedScenes;
-    }
 
-    window.onload = function() {
-        viewer = pannellum.viewer('panorama', {
-            "default": { "firstScene": "stairway", "autoLoad": true, "showControls": false },
-            "scenes": buildPannellumScenes()
-        });
+            appData.scenes[activeScene].nodes.push(newNode);
+            renderNodes3D();
 
-        // Dynamic Mouse Click Angle Detection
-        document.getElementById('panorama').addEventListener('mouseup', function(e) {
-            if (viewer) {
-                var coords = viewer.mouseEventToCoords(e);
-                if (coords && coords.length >= 2) {
-                    selectedAngle.pitch = parseFloat(coords[0].toFixed(2));
-                    selectedAngle.yaw = parseFloat(coords[1].toFixed(2));
-                    updateUIReading();
-                }
-            }
-        });
-    };
-
-    // CAPTURE CAMERA CENTER ANGLE (Guaranteed to work at any rotation angle)
-    function captureCenterViewAngle() {
-        if (!viewer) return;
-        selectedAngle.pitch = parseFloat(viewer.getPitch().toFixed(2));
-        selectedAngle.yaw = parseFloat(viewer.getYaw().toFixed(2));
-        updateUIReading();
-    }
-
-    function updateUIReading() {
-        document.getElementById('lbl-pitch').innerText = selectedAngle.pitch;
-        document.getElementById('lbl-yaw').innerText = selectedAngle.yaw;
-    }
-
-    // CREATE NEW NODE DYNAMICALLY
-    function createNewNode() {
-        var text = document.getElementById('node-text').value;
-        var target = document.getElementById('node-target').value;
-        var newId = "node_" + Date.now();
-
-        var newNode = {
-            "id": newId,
-            "pitch": selectedAngle.pitch,
-            "yaw": selectedAngle.yaw,
-            "text": text,
-            "target": target
-        };
-
-        appData.scenes[activeScene].nodes.push(newNode);
-
-        // Add hotspot directly without resetting screen view
-        viewer.addHotSpot({
-            "id": newId,
-            "pitch": selectedAngle.pitch,
-            "yaw": selectedAngle.yaw,
-            "cssClass": "node-marker",
-            "createTooltipFunc": function(hotSpotDiv) {
-                hotSpotDiv.title = text + " ➔ " + target;
-                hotSpotDiv.onclick = function(e) {
-                    e.stopPropagation();
-                    selectedNodeId = newId;
-                    highlightSelectedNode(hotSpotDiv);
-                };
-                hotSpotDiv.ondblclick = function(e) {
-                    e.stopPropagation();
-                    loadRoom(target);
-                };
-            }
-        }, activeScene);
-
-        alert("Node successfully placed at Pitch: " + selectedAngle.pitch + "°, Yaw: " + selectedAngle.yaw + "°!");
+            alert("3D Node Placed Successfully at current view vector!");
+        }
     }
 
     // DELETE SELECTED NODE
     function deleteSelectedNode() {
-        if (!selectedNodeId) return alert("Click a 🎯 node marker to select it first!");
+        if (!selectedNodeMesh) return alert("Click a 3D Node sphere in the panorama to select it first!");
         
-        // Remove from data tree
-        appData.scenes[activeScene].nodes = appData.scenes[activeScene].nodes.filter(n => n.id !== selectedNodeId);
+        var idToDelete = selectedNodeMesh.userData.id;
+        appData.scenes[activeScene].nodes = appData.scenes[activeScene].nodes.filter(n => n.id !== idToDelete);
         
-        // Remove hotspot live from viewer
-        viewer.removeHotSpot(selectedNodeId, activeScene);
-        selectedNodeId = null;
+        selectedNodeMesh = null;
+        renderNodes3D();
     }
 
-    function highlightSelectedNode(el) {
-        document.querySelectorAll('.node-marker').forEach(m => m.classList.remove('selected'));
-        el.classList.add('selected');
+    // DRAG ROTATION ENGINE
+    function onPointerDown(event) {
+        if (event.clientY < 60 || event.clientX > window.innerWidth - 340) return; // Prevent drag when clicking UI
+
+        isUserInteracting = true;
+        onPointerDownPointerX = event.clientX;
+        onPointerDownPointerY = event.clientY;
+
+        onPointerDownLon = lon;
+        onPointerDownLat = lat;
+
+        // RAYCAST CLICK ON 3D NODES
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        var intersects = raycaster.intersectObjects(nodeMeshes);
+
+        if (intersects.length > 0) {
+            var clickedNode = intersects[0].object;
+            selectedNodeMesh = clickedNode;
+
+            // Highlight Node
+            nodeMeshes.forEach(m => m.material.color.setHex(0x00f0ff));
+            clickedNode.material.color.setHex(0xff0055);
+
+            // Double Click to Navigate
+            if (event.detail === 2) {
+                loadRoom(clickedNode.userData.target);
+            }
+        }
     }
 
+    function onPointerMove(event) {
+        if (isUserInteracting === true) {
+            lon = (onPointerDownPointerX - event.clientX) * 0.1 + onPointerDownLon;
+            lat = (event.clientY - onPointerDownPointerY) * 0.1 + onPointerDownLat;
+        }
+    }
+
+    function onPointerUp() {
+        isUserInteracting = false;
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        update();
+    }
+
+    function update() {
+        lat = Math.max(-85, Math.min(85, lat));
+        phi = THREE.MathUtils.degToRad(90 - lat);
+        theta = THREE.MathUtils.degToRad(lon);
+
+        camera.target.x = 500 * Math.sin(phi) * Math.cos(theta);
+        camera.target.y = 500 * Math.cos(phi);
+        camera.target.z = 500 * Math.sin(phi) * Math.sin(theta);
+
+        camera.lookAt(camera.target);
+
+        // Pulse selected Node
+        if (selectedNodeMesh) {
+            selectedNodeMesh.rotation.y += 0.05;
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // ROOM SWITCHING
     function loadRoom(roomKey) {
         activeScene = roomKey;
-        selectedNodeId = null;
-        viewer.loadScene(roomKey);
+        selectedNodeMesh = null;
+
+        var textureLoader = new THREE.TextureLoader();
+        textureLoader.load(appData.scenes[roomKey].panorama, function(tex) {
+            sphereMesh.material.map = tex;
+            sphereMesh.material.needsUpdate = true;
+            renderNodes3D();
+        });
 
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         var btn = document.getElementById('btn-' + roomKey);
@@ -325,8 +359,8 @@
     }
 
     function saveConfigurationPermanently() {
-        localStorage.setItem('PANO_EDITOR_CONFIG', JSON.stringify(appData));
-        alert("LAYOUT SAVED SUCCESSFULLY!\nAll node placements are stored and will load automatically on startup.");
+        localStorage.setItem('THREE_PANO_CONFIG', JSON.stringify(appData));
+        alert("LAYOUT SAVED SUCCESSFULLY!\n3D Node coordinates are stored inside browser memory and will auto-load.");
     }
 </script>
 </body>
