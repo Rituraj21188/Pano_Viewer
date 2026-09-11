@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PANO_VIEWER HUD - Walkthrough Editor</title>
+    <title>PANO_VIEWER HUD - Walkthrough Editor & Custom Cursor</title>
     
     <!-- Pannellum CDN CSS & JS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
@@ -29,6 +29,12 @@
             color: #00f0ff;
         }
 
+        /* HIDE DEFAULT CURSOR FOR CANVAS WHEN CUSTOM CURSOR IS ACTIVE */
+        body.custom-cursor-active, 
+        body.custom-cursor-active * {
+            cursor: none !important;
+        }
+
         #panorama {
             width: 100vw;
             height: 100vh;
@@ -36,6 +42,57 @@
             top: 0;
             left: 0;
             z-index: 1;
+        }
+
+        /* CUSTOM CURSOR OVERLAY ELEMENTS */
+        #custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 24px;
+            height: 24px;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: width 0.2s, height 0.2s, border-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Style 1: Crosshair */
+        .cursor-crosshair {
+            border: 1px solid #00f0ff;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(0, 240, 255, 0.8);
+        }
+        .cursor-crosshair::after {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background: #00f0ff;
+            border-radius: 50%;
+        }
+
+        /* Style 2: Target Ring */
+        .cursor-target {
+            border: 2px dashed #00ffaa;
+            border-radius: 50%;
+            animation: spin 6s linear infinite;
+            box-shadow: 0 0 10px #00ffaa;
+        }
+
+        /* Style 3: Laser Dot */
+        .cursor-laser {
+            width: 10px !important;
+            height: 10px !important;
+            background: #ff0055;
+            border-radius: 50%;
+            box-shadow: 0 0 12px #ff0055, 0 0 20px #ff0055;
+        }
+
+        @keyframes spin {
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
 
         /* Sci-Fi HUD Overlay Container */
@@ -130,16 +187,16 @@
 
         .editor-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: 13px;
+            font-size: 12px;
             color: #fff;
             border-bottom: 1px solid rgba(0, 240, 255, 0.3);
             padding-bottom: 5px;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
 
         .coord-display {
             font-family: monospace;
-            font-size: 13px;
+            font-size: 12px;
             background: rgba(0, 240, 255, 0.1);
             padding: 8px;
             border-radius: 4px;
@@ -221,7 +278,7 @@
             font-weight: bold;
         }
 
-        /* Footer Proprietary Tag */
+        /* Footer Copyright Tag */
         .hud-copyright {
             position: absolute;
             bottom: 12px;
@@ -238,10 +295,13 @@
         }
     </style>
 </head>
-<body>
+<body class="custom-cursor-active">
 
     <!-- Panorama Canvas -->
     <div id="panorama"></div>
+
+    <!-- Custom Pointer Element -->
+    <div id="custom-cursor" class="cursor-crosshair"></div>
 
     <!-- HUD Overlay -->
     <div class="hud-overlay">
@@ -253,7 +313,7 @@
             </div>
             <div class="hud-status">
                 <div class="status-dot"></div>
-                EDITOR MODE ENABLED
+                SYSTEM ACTIVE
             </div>
         </div>
 
@@ -266,7 +326,7 @@
                 YAW: <span id="val-yaw">0.0</span>°
             </div>
 
-            <input type="text" id="hotspot-text" class="editor-input" placeholder="Hotspot Label (e.g. GOTO HALL)" value="ENTER INTERIOR">
+            <input type="text" id="hotspot-text" class="editor-input" placeholder="Hotspot Label" value="ENTER INTERIOR">
             
             <select id="target-scene" class="editor-select">
                 <option value="stairway">Target: Stairway</option>
@@ -276,7 +336,16 @@
             </select>
 
             <button class="editor-btn" onclick="addNodeToCurrentScene()">➕ Place Node Here</button>
-            <button class="editor-btn export" onclick="exportConfig()">💾 Export Saved Config</button>
+
+            <div class="editor-title" style="margin-top: 5px;">🖱️ APP CURSOR STYLE</div>
+            <select id="cursor-select" class="editor-select" onchange="changeCursorStyle(this.value)">
+                <option value="cursor-crosshair" selected>Sci-Fi Crosshair</option>
+                <option value="cursor-target">Target Ring</option>
+                <option value="cursor-laser">Laser Pointer</option>
+                <option value="default">Default OS Cursor</option>
+            </select>
+
+            <button class="editor-btn export" onclick="exportConfig()" style="margin-top: 5px;">💾 Export Saved Config</button>
         </div>
 
         <!-- Navigation HUD Toolbar -->
@@ -294,58 +363,83 @@
     </div>
 
 <script>
-    // Config JSON Structure
-    var tourScenes = {
-        "stairway": {
-            "title": "Church Stairway Entrance",
-            "hfov": 100,
-            "pitch": 0,
-            "yaw": 0,
-            "type": "equirectangular",
-            "panorama": "church_stairway_4k.jpg",
-            "hotSpots": [
-                { "pitch": 12.0, "yaw": 18.0, "type": "scene", "text": "ENTER INTERIOR MAIN HALL", "sceneId": "interior" },
-                { "pitch": -10.0, "yaw": -25.0, "type": "scene", "text": "GO TO MUSEUM", "sceneId": "museum" }
-            ]
-        },
-        "interior": {
-            "title": "Church Interior Hall",
-            "hfov": 100,
-            "pitch": 0,
-            "yaw": 0,
-            "type": "equirectangular",
-            "panorama": "church_interior_4k.jpg",
-            "hotSpots": [
-                { "pitch": -1.0, "yaw": -120.0, "type": "scene", "text": "EXIT TO STAIRWAY", "sceneId": "stairway" },
-                { "pitch": 0.0, "yaw": 60.0, "type": "scene", "text": "ENTER MEETING ROOM", "sceneId": "meeting_room" },
-                { "pitch": 0.0, "yaw": -60.0, "type": "scene", "text": "ENTER MUSEUM", "sceneId": "museum" }
-            ]
-        },
-        "meeting_room": {
-            "title": "Church Meeting Room",
-            "hfov": 100,
-            "pitch": 0,
-            "yaw": 0,
-            "type": "equirectangular",
-            "panorama": "church_meeting_room_4k.jpg",
-            "hotSpots": [
-                { "pitch": -2.0, "yaw": 180.0, "type": "scene", "text": "RETURN TO INTERIOR", "sceneId": "interior" }
-            ]
-        },
-        "museum": {
-            "title": "Church Museum",
-            "hfov": 100,
-            "pitch": 0,
-            "yaw": 0,
-            "type": "equirectangular",
-            "panorama": "church_museum_4k.jpg",
-            "hotSpots": [
-                { "pitch": -2.0, "yaw": 160.0, "type": "scene", "text": "RETURN TO INTERIOR", "sceneId": "interior" }
-            ]
+    // App Configuration Tree
+    var appConfig = {
+        "activeCursorStyle": "cursor-crosshair",
+        "scenes": {
+            "stairway": {
+                "title": "Church Stairway Entrance",
+                "hfov": 100,
+                "pitch": 0,
+                "yaw": 0,
+                "type": "equirectangular",
+                "panorama": "church_stairway_4k.jpg",
+                "hotSpots": [
+                    { "pitch": 12.0, "yaw": 18.0, "type": "scene", "text": "ENTER INTERIOR MAIN HALL", "sceneId": "interior" },
+                    { "pitch": -10.0, "yaw": -25.0, "type": "scene", "text": "GO TO MUSEUM", "sceneId": "museum" }
+                ]
+            },
+            "interior": {
+                "title": "Church Interior Hall",
+                "hfov": 100,
+                "pitch": 0,
+                "yaw": 0,
+                "type": "equirectangular",
+                "panorama": "church_interior_4k.jpg",
+                "hotSpots": [
+                    { "pitch": -1.0, "yaw": -120.0, "type": "scene", "text": "EXIT TO STAIRWAY", "sceneId": "stairway" },
+                    { "pitch": 0.0, "yaw": 60.0, "type": "scene", "text": "ENTER MEETING ROOM", "sceneId": "meeting_room" },
+                    { "pitch": 0.0, "yaw": -60.0, "type": "scene", "text": "ENTER MUSEUM", "sceneId": "museum" }
+                ]
+            },
+            "meeting_room": {
+                "title": "Church Meeting Room",
+                "hfov": 100,
+                "pitch": 0,
+                "yaw": 0,
+                "type": "equirectangular",
+                "panorama": "church_meeting_room_4k.jpg",
+                "hotSpots": [
+                    { "pitch": -2.0, "yaw": 180.0, "type": "scene", "text": "RETURN TO INTERIOR", "sceneId": "interior" }
+                ]
+            },
+            "museum": {
+                "title": "Church Museum",
+                "hfov": 100,
+                "pitch": 0,
+                "yaw": 0,
+                "type": "equirectangular",
+                "panorama": "church_museum_4k.jpg",
+                "hotSpots": [
+                    { "pitch": -2.0, "yaw": 160.0, "type": "scene", "text": "RETURN TO INTERIOR", "sceneId": "interior" }
+                ]
+            }
         }
     };
 
     var currentClickCoords = { pitch: 0, yaw: 0 };
+    const cursorElem = document.getElementById('custom-cursor');
+
+    // Custom Mouse Tracker Handler
+    window.addEventListener('mousemove', (e) => {
+        cursorElem.style.left = e.clientX + 'px';
+        cursorElem.style.top = e.clientY + 'px';
+    });
+
+    // Change Inbuilt App Cursor Style Function
+    function changeCursorStyle(styleClass) {
+        appConfig.activeCursorStyle = styleClass;
+        cursorElem.className = ''; // Clear classes
+        
+        if (styleClass === 'default') {
+            document.body.classList.remove('custom-cursor-active');
+            cursorElem.style.display = 'none';
+        } else {
+            document.body.classList.add('custom-cursor-active');
+            cursorElem.style.display = 'flex';
+            cursorElem.classList.add(styleClass);
+        }
+    }
 
     // Initialize Viewer
     var viewer = pannellum.viewer('panorama', {
@@ -357,10 +451,10 @@
             "showControls": false,
             "hotSpotDebug": false
         },
-        "scenes": tourScenes
+        "scenes": appConfig.scenes
     });
 
-    // Real-Time Position Mouse Detection
+    // Position Calculator on Click
     document.getElementById('panorama').addEventListener('mousedown', function(event) {
         var coords = viewer.canvasToFinalBounds(event);
         if(coords) {
@@ -372,7 +466,7 @@
         }
     });
 
-    // Add New Hotspot Node Dynamically
+    // Add New Node Dynamically
     function addNodeToCurrentScene() {
         var activeScene = viewer.getScene();
         var labelText = document.getElementById('hotspot-text').value;
@@ -386,32 +480,27 @@
             "sceneId": targetScene
         };
 
-        // Add Hotspot to Live View
         viewer.addHotSpot(newHotspot, activeScene);
-
-        // Push to local data tree
-        tourScenes[activeScene].hotSpots.push(newHotspot);
+        appConfig.scenes[activeScene].hotSpots.push(newHotspot);
 
         alert('Node Placed in ' + activeScene + '!\nPitch: ' + currentClickCoords.pitch + ' | Yaw: ' + currentClickCoords.yaw);
     }
 
-    // Export & Download JSON Config file for permanent save
+    // Export Complete Config (Node positions + Cursor Choice)
     function exportConfig() {
-        var formattedData = "var tourScenes = " + JSON.stringify(tourScenes, null, 4) + ";";
+        var formattedData = "var appConfig = " + JSON.stringify(appConfig, null, 4) + ";";
         
-        // Copy to clipboard
         navigator.clipboard.writeText(formattedData);
-        alert("Configuration copied to clipboard! You can replace 'var tourScenes' in your code now.");
+        alert("Configuration & Cursor choice copied to clipboard!");
 
-        // Create downloadable JSON file
         var blob = new Blob([formattedData], { type: "text/javascript" });
         var a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = "scenes_config.js";
+        a.download = "app_config.js";
         a.click();
     }
 
-    // Switch Scene Handlers
+    // Navigation state handlers
     function switchScene(sceneId) {
         viewer.loadScene(sceneId);
         updateNavState(sceneId);
