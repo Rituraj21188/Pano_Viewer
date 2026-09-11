@@ -1,3 +1,29 @@
+<!-- Load your saved configuration -->
+<script src="app_config.js"></script>
+
+<!-- Your main script -->
+<script>
+    // Remove the hardcoded 'var appConfig = {...}' from index.html 
+    // because it will now automatically load from app_config.js!
+    
+    // Apply saved cursor setting on page load
+    changeCursorStyle(appConfig.activeCursorStyle);
+
+    // Initialize Viewer using the loaded configuration
+    var viewer = pannellum.viewer('panorama', {
+        "default": {
+            "firstScene": "stairway",
+            "author": "Rituraj_Gogoi",
+            "sceneFadeDuration": 1000,
+            "autoLoad": true,
+            "showControls": false
+        },
+        "scenes": appConfig.scenes
+    });
+
+    // ... Rest of your functions (changeCursorStyle, addNodeToCurrentScene, etc.)
+</script>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
