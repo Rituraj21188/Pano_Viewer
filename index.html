@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pano_Viewer - 360 Walkthrough</title>
 
     <!-- Three.js Engine CDN -->
@@ -17,11 +17,15 @@
             margin: 0;
             padding: 0;
             user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            touch-action: none; /* Prevents mobile browser scrolling/pull-refresh */
         }
 
         body, html {
             width: 100%;
             height: 100%;
+            height: 100dvh; /* Dynamic viewport height for mobile browsers */
             overflow: hidden;
             background: #000;
             font-family: 'Rajdhani', sans-serif;
@@ -29,7 +33,7 @@
 
         #webgl-container {
             width: 100vw;
-            height: 100vh;
+            height: 100%;
             position: absolute;
             top: 0;
             left: 0;
@@ -39,35 +43,41 @@
         /* HUD TOP BAR */
         .hud-header {
             position: absolute;
-            top: 15px;
-            left: 15px;
-            right: 15px;
+            top: 12px;
+            left: 12px;
+            right: 12px;
             z-index: 10;
-            background: rgba(5, 15, 30, 0.75);
+            background: rgba(5, 15, 30, 0.8);
             border: 1px solid #00f0ff;
-            border-left: 5px solid #00f0ff;
-            padding: 10px 20px;
+            border-left: 4px solid #00f0ff;
+            padding: 8px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             pointer-events: none;
+            border-radius: 4px;
         }
 
         .hud-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: 16px;
+            font-size: 14px;
             color: #fff;
-            letter-spacing: 2px;
+            letter-spacing: 1.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .hud-badge {
-            font-size: 11px;
+            font-size: 10px;
             background: #00ffaa;
             color: #000;
-            padding: 2px 8px;
+            padding: 2px 6px;
             font-weight: bold;
             border-radius: 3px;
+            white-space: nowrap;
         }
 
         /* CENTER RETICLE */
@@ -76,8 +86,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             border: 1px solid rgba(0, 240, 255, 0.4);
             border-radius: 50%;
             pointer-events: none;
@@ -100,33 +110,44 @@
         /* ROOM NAVIGATION BAR */
         .hud-nav {
             position: absolute;
-            bottom: 25px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
             display: flex;
-            gap: 10px;
+            gap: 8px;
             background: rgba(5, 15, 30, 0.85);
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 20px;
             border: 1px solid #00f0ff;
             backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+            max-width: 95vw;
+            overflow-x: auto;
+            scrollbar-width: none; /* Hide scrollbar Firefox */
+            touch-action: pan-x; /* Allow horizontal button scroll on tiny screens */
+        }
+
+        .hud-nav::-webkit-scrollbar {
+            display: none; /* Hide scrollbar Chrome/Safari */
         }
 
         .nav-btn {
             background: transparent;
             border: 1px solid rgba(0, 240, 255, 0.4);
             color: #00f0ff;
-            padding: 6px 14px;
+            padding: 6px 12px;
             font-family: 'Orbitron', sans-serif;
             font-size: 11px;
             cursor: pointer;
             border-radius: 12px;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            touch-action: manipulation;
         }
 
-        .nav-btn.active, .nav-btn:hover {
+        .nav-btn.active, .nav-btn:active {
             background: #00f0ff;
             color: #000;
             font-weight: bold;
@@ -135,13 +156,62 @@
 
         .hud-copy {
             position: absolute;
-            bottom: 10px;
-            right: 15px;
+            bottom: 6px;
+            right: 12px;
             z-index: 10;
-            font-size: 10px;
+            font-size: 9px;
             color: rgba(255, 255, 255, 0.4);
-            font-family: 'Orbitron';
+            font-family: 'Orbitron', sans-serif;
             pointer-events: none;
+        }
+
+        /* DESKTOP HOVER STYLES */
+        @media (hover: hover) and (pointer: fine) {
+            .nav-btn:hover {
+                background: #00f0ff;
+                color: #000;
+                font-weight: bold;
+                box-shadow: 0 0 10px #00f0ff;
+            }
+        }
+
+        /* MOBILE RESPONSIVE TWEAKS */
+        @media (max-width: 600px) {
+            .hud-header {
+                top: 8px;
+                left: 8px;
+                right: 8px;
+                padding: 6px 10px;
+            }
+
+            .hud-title {
+                font-size: 11px;
+                letter-spacing: 1px;
+            }
+
+            .hud-badge {
+                font-size: 9px;
+                padding: 1px 4px;
+            }
+
+            .hud-nav {
+                bottom: 15px;
+                padding: 5px 8px;
+                gap: 6px;
+                border-radius: 16px;
+            }
+
+            .nav-btn {
+                padding: 6px 10px;
+                font-size: 10px;
+                border-radius: 10px;
+            }
+
+            .hud-copy {
+                font-size: 8px;
+                bottom: 4px;
+                right: 8px;
+            }
         }
     </style>
 </head>
@@ -289,33 +359,33 @@
         mouse = new THREE.Vector2();
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // High-DPI screen support
         renderer.setSize(window.innerWidth, window.innerHeight);
         container.appendChild(renderer.domElement);
 
-        // DRAG ENGINE & CLICK EVENTS
-        document.addEventListener('pointerdown', onPointerDown);
-        document.addEventListener('pointermove', onPointerMove);
-        document.addEventListener('pointerup', onPointerUp);
-        window.addEventListener('resize', onWindowResize);
+        // UNIVERSAL POINTER EVENTS (TOUCH & MOUSE)
+        container.addEventListener('pointerdown', onPointerDown, false);
+        container.addEventListener('pointermove', onPointerMove, false);
+        container.addEventListener('pointerup', onPointerUp, false);
+        window.addEventListener('resize', onWindowResize, false);
 
         renderNodes3D();
     }
 
-    // RENDER COMPACT 3D NODES FOR ALL ROOMS
+    // RENDER COMPACT 3D NODES
     function renderNodes3D() {
         nodeMeshes.forEach(mesh => scene.remove(mesh));
         nodeMeshes = [];
 
         var nodes = appData.scenes[activeScene].nodes;
         nodes.forEach(function(n) {
-            // Small radius (0.8) applied universally to all scene nodes
+            // Node sphere radius 0.8
             var nodeGeo = new THREE.SphereGeometry(0.8, 12, 12);
             var nodeMat = new THREE.MeshBasicMaterial({ 
                 color: 0x00f0ff, 
                 wireframe: true,
                 transparent: true,
-                opacity: 0.8
+                opacity: 0.85
             });
             var nodeMesh = new THREE.Mesh(nodeGeo, nodeMat);
 
@@ -328,7 +398,8 @@
     }
 
     function onPointerDown(event) {
-        if (event.clientY > window.innerHeight - 80) return; // Ignore click on bottom toolbar
+        // Ignore drag initiation if tapping near the bottom navigation bar
+        if (event.clientY > window.innerHeight - 70) return;
 
         isUserInteracting = true;
         onPointerDownPointerX = event.clientX;
@@ -337,11 +408,14 @@
         onPointerDownLon = lon;
         onPointerDownLat = lat;
 
-        // CHECK IF CLICKED ON A 3D NODE MARKER
+        // RAYCAST HIT DETECTION FOR MOBILE TOUCH AND MOUSE
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
         raycaster.setFromCamera(mouse, camera);
+        
+        // Increase raycaster precision threshold for mobile touch taps
+        raycaster.params.Points.threshold = 1.5;
         var intersects = raycaster.intersectObjects(nodeMeshes);
 
         if (intersects.length > 0) {
@@ -352,8 +426,10 @@
 
     function onPointerMove(event) {
         if (isUserInteracting === true) {
-            lon = (onPointerDownPointerX - event.clientX) * 0.1 + onPointerDownLon;
-            lat = (event.clientY - onPointerDownPointerY) * 0.1 + onPointerDownLat;
+            // Drag sensitivity factor adjusted for touch screens
+            var sensitivity = window.innerWidth < 600 ? 0.15 : 0.1;
+            lon = (onPointerDownPointerX - event.clientX) * sensitivity + onPointerDownLon;
+            lat = (event.clientY - onPointerDownPointerY) * sensitivity + onPointerDownLat;
         }
     }
 
@@ -377,7 +453,7 @@
 
         camera.lookAt(camera.target);
 
-        // Gentle rotation animation for all node meshes
+        // Slow rotation animation for 3D nodes
         nodeMeshes.forEach(mesh => {
             mesh.rotation.y += 0.02;
         });
