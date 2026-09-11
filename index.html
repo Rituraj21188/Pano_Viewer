@@ -16,38 +16,24 @@
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body, html { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Rajdhani', sans-serif; }
 
-        /* HIDE NATIVE CURSOR WHEN CUSTOM CURSOR IS ACTIVE */
-        body.custom-cursor, body.custom-cursor * { cursor: none !important; }
-
         #panorama { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
-
-        /* CUSTOM RETICLE CURSOR */
-        #custom-cursor {
-            position: fixed; top: 0; left: 0; width: 20px; height: 20px;
-            pointer-events: none; z-index: 99999; transform: translate(-50%, -50%);
-            display: flex; align-items: center; justify-content: center;
-        }
-        .cursor-crosshair { border: 2px solid #00f0ff; border-radius: 50%; box-shadow: 0 0 10px #00f0ff; }
-        .cursor-crosshair::after { content: ''; width: 4px; height: 4px; background: #00f0ff; border-radius: 50%; }
-        .cursor-target { border: 2px dashed #00ffaa; border-radius: 50%; box-shadow: 0 0 12px #00ffaa; }
-        .cursor-laser { width: 10px !important; height: 10px !important; background: #ff0055; border-radius: 50%; box-shadow: 0 0 15px #ff0055; }
 
         /* HUD TOP HEADER */
         .hud-header {
             position: absolute; top: 15px; left: 15px; right: 15px; z-index: 10;
             background: rgba(5, 15, 30, 0.85); border: 1px solid #00f0ff; border-left: 5px solid #00f0ff;
             padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px); pointer-events: none;
         }
         .hud-title { font-family: 'Orbitron', sans-serif; font-size: 16px; color: #fff; letter-spacing: 2px; }
         .hud-badge { font-size: 11px; background: #00ffaa; color: #000; padding: 2px 8px; font-weight: bold; border-radius: 3px; }
 
         /* VISUAL 3D EDITOR CONTROL PANEL */
         #editor-panel {
-            position: absolute; top: 75px; right: 15px; z-index: 10; width: 320px;
-            background: rgba(5, 15, 30, 0.9); border: 1px solid rgba(0,240,255,0.5);
-            padding: 15px; border-radius: 6px; color: #00f0ff; backdrop-filter: blur(10px);
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2); display: flex; flex-direction: column; gap: 8px;
+            position: absolute; top: 75px; right: 15px; z-index: 1000; width: 330px;
+            background: rgba(5, 15, 30, 0.92); border: 1px solid rgba(0,240,255,0.6);
+            padding: 15px; border-radius: 8px; color: #00f0ff; backdrop-filter: blur(12px);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.3); display: flex; flex-direction: column; gap: 8px;
         }
         .panel-title { font-family: 'Orbitron', sans-serif; font-size: 12px; color: #fff; border-bottom: 1px solid rgba(0,240,255,0.3); padding-bottom: 4px; }
         
@@ -55,70 +41,88 @@
         .field-label { font-size: 11px; color: rgba(255,255,255,0.7); }
         .editor-input, .editor-select {
             background: #050b14; border: 1px solid #00f0ff; color: #00f0ff;
-            padding: 6px; font-family: 'Rajdhani', sans-serif; font-size: 13px; outline: none; border-radius: 3px;
+            padding: 8px; font-family: 'Rajdhani', sans-serif; font-size: 13px; outline: none; border-radius: 4px;
         }
 
         .btn {
-            background: #00f0ff; color: #000; border: none; padding: 8px;
+            background: #00f0ff; color: #000; border: none; padding: 10px;
             font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: bold;
-            cursor: pointer; transition: 0.2s; border-radius: 3px; text-transform: uppercase;
+            cursor: pointer; transition: 0.2s; border-radius: 4px; text-transform: uppercase;
         }
-        .btn:hover { background: #00ffaa; box-shadow: 0 0 10px #00ffaa; }
+        .btn:hover { background: #00ffaa; box-shadow: 0 0 12px #00ffaa; }
+        .btn-center { background: #ffe600; color: #000; }
+        .btn-center:hover { background: #fff066; box-shadow: 0 0 12px #ffe600; }
         .btn-danger { background: #ff0055; color: #fff; }
-        .btn-danger:hover { background: #ff3377; box-shadow: 0 0 10px #ff0055; }
+        .btn-danger:hover { background: #ff3377; box-shadow: 0 0 12px #ff0055; }
         .btn-save { background: #00ffaa; color: #000; }
 
-        /* LIVE DRAGGABLE NODE STYLING */
+        /* LIVE NODE STYLING */
         .node-marker {
-            width: 32px; height: 32px; background: rgba(0, 240, 255, 0.2);
-            border: 2px solid #00f0ff; border-radius: 50%; cursor: move;
+            width: 36px; height: 36px; background: rgba(0, 240, 255, 0.3);
+            border: 2px solid #00f0ff; border-radius: 50%; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 15px #00f0ff; transition: transform 0.1s;
+            box-shadow: 0 0 15px #00f0ff; transition: all 0.2s;
         }
-        .node-marker:hover { transform: scale(1.2); background: rgba(0, 255, 170, 0.4); border-color: #00ffaa; }
-        .node-marker.selected { border-color: #ff0055; box-shadow: 0 0 20px #ff0055; }
-        .node-marker::after { content: '🎯'; font-size: 14px; }
+        .node-marker:hover { transform: scale(1.25); background: rgba(0, 255, 170, 0.5); border-color: #00ffaa; }
+        .node-marker.selected { border-color: #ff0055; box-shadow: 0 0 25px #ff0055; background: rgba(255,0,85,0.4); }
+        .node-marker::after { content: '🎯'; font-size: 16px; }
+
+        /* CENTER CROSSHAIR POINTER */
+        .center-crosshair {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 20px; height: 20px; border: 1px solid rgba(0, 240, 255, 0.5); border-radius: 50%;
+            pointer-events: none; z-index: 5;
+        }
+        .center-crosshair::after {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 4px; height: 4px; background: #00f0ff; transform: translate(-50%, -50%); border-radius: 50%;
+        }
 
         /* BOTTOM TOOLBAR NAVIGATION */
         .hud-nav {
-            position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 10;
+            position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 1000;
             display: flex; gap: 10px; background: rgba(5, 15, 30, 0.85); padding: 8px 16px;
             border-radius: 20px; border: 1px solid #00f0ff; backdrop-filter: blur(8px);
         }
         .nav-btn {
             background: transparent; border: 1px solid rgba(0,240,255,0.4); color: #00f0ff;
-            padding: 5px 12px; font-family: 'Orbitron', sans-serif; font-size: 11px; cursor: pointer; border-radius: 12px;
+            padding: 6px 14px; font-family: 'Orbitron', sans-serif; font-size: 11px; cursor: pointer; border-radius: 12px;
         }
         .nav-btn.active, .nav-btn:hover { background: #00f0ff; color: #000; font-weight: bold; }
 
-        .hud-copy { position: absolute; bottom: 10px; right: 15px; z-index: 10; font-size: 10px; color: rgba(255,255,255,0.4); font-family: 'Orbitron'; }
+        .hud-copy { position: absolute; bottom: 10px; right: 15px; z-index: 10; font-size: 10px; color: rgba(255,255,255,0.4); font-family: 'Orbitron'; pointer-events: none; }
     </style>
 </head>
-<body class="custom-cursor">
+<body>
 
+    <!-- PANORAMA CANVAS -->
     <div id="panorama"></div>
-    <div id="custom-cursor" class="cursor-crosshair"></div>
+
+    <!-- CENTER RETICLE AIM -->
+    <div class="center-crosshair"></div>
 
     <!-- HUD OVERLAY -->
     <div class="hud-header">
         <div class="hud-title">PANO_VIEWER 3D EDITOR</div>
-        <div class="hud-badge">MODE: REAL-TIME PLACEMENT</div>
+        <div class="hud-badge">STATUS: ANGLE LOOKUP ACTIVE</div>
     </div>
 
     <!-- 3D EDITOR CONTROLLER -->
     <div id="editor-panel">
-        <div class="panel-title">🎯 LIVE NODE EDITOR</div>
+        <div class="panel-title">🎯 LIVE NODE POSITIONING</div>
         
         <div class="field-group">
-            <span class="field-label">CLICKED COORDINATES</span>
-            <div style="font-family: monospace; font-size: 12px; color:#00ffaa;">
+            <span class="field-label">TARGET VIEWING ANGLE</span>
+            <div style="font-family: monospace; font-size: 13px; color:#00ffaa; background: rgba(0,240,255,0.1); padding: 6px; border-radius: 4px;">
                 PITCH: <span id="lbl-pitch">0.00</span>° | YAW: <span id="lbl-yaw">0.00</span>°
             </div>
         </div>
 
+        <button class="btn btn-center" onclick="captureCenterViewAngle()">🎯 CAPTURE CENTER VIEW ANGLE</button>
+
         <div class="field-group">
             <span class="field-label">NODE LABEL TEXT</span>
-            <input type="text" id="node-text" class="editor-input" value="GO TO ROOM">
+            <input type="text" id="node-text" class="editor-input" value="ENTER INTERIOR">
         </div>
 
         <div class="field-group">
@@ -131,18 +135,9 @@
             </select>
         </div>
 
-        <button class="btn" onclick="createNewNode()">➕ CREATE NODE AT CLICK</button>
+        <button class="btn" onclick="createNewNode()">➕ PLACE NODE AT CAPTURED ANGLE</button>
         <button class="btn btn-danger" onclick="deleteSelectedNode()">🗑️ DELETE SELECTED NODE</button>
-
-        <div class="panel-title" style="margin-top:5px;">🖱️ CURSOR SYSTEM</div>
-        <select class="editor-select" onchange="setCursorStyle(this.value)">
-            <option value="cursor-crosshair">Sci-Fi Crosshair</option>
-            <option value="cursor-target">Target Ring</option>
-            <option value="cursor-laser">Laser Pointer</option>
-            <option value="default">Default System Cursor</option>
-        </select>
-
-        <button class="btn btn-save" onclick="saveConfigurationPermanently()" style="margin-top:6px;">💾 SAVE LAYOUT TO APP</button>
+        <button class="btn btn-save" onclick="saveConfigurationPermanently()" style="margin-top:4px;">💾 SAVE LAYOUT TO APP</button>
     </div>
 
     <!-- ROOM SWITCHING TOOLBAR -->
@@ -158,7 +153,6 @@
 <script>
     // DEFAULT PANORAMA & NODE TREE
     var defaultData = {
-        "cursor": "cursor-crosshair",
         "scenes": {
             "stairway": {
                 "title": "Church Stairway Entrance",
@@ -194,33 +188,11 @@
         }
     };
 
-    // LOAD SAVED APP DATA OR FALLBACK TO DEFAULT
     var appData = JSON.parse(localStorage.getItem('PANO_EDITOR_CONFIG')) || defaultData;
     var viewer, activeScene = 'stairway';
-    var lastClickedCoords = { pitch: 0, yaw: 0 };
+    var selectedAngle = { pitch: 0, yaw: 0 };
     var selectedNodeId = null;
 
-    // CUSTOM CURSOR TRACKER
-    const cursorEl = document.getElementById('custom-cursor');
-    window.addEventListener('mousemove', (e) => {
-        cursorEl.style.left = e.clientX + 'px';
-        cursorEl.style.top = e.clientY + 'px';
-    });
-
-    function setCursorStyle(styleClass) {
-        appData.cursor = styleClass;
-        cursorEl.className = '';
-        if (styleClass === 'default') {
-            document.body.classList.remove('custom-cursor');
-            cursorEl.style.display = 'none';
-        } else {
-            document.body.classList.add('custom-cursor');
-            cursorEl.style.display = 'flex';
-            cursorEl.classList.add(styleClass);
-        }
-    }
-
-    // RENDER HOTSPOTS INTO PANNELLUM
     function buildPannellumScenes() {
         var formattedScenes = {};
         Object.keys(appData.scenes).forEach(function(roomKey) {
@@ -254,28 +226,39 @@
         return formattedScenes;
     }
 
-    // INITIALIZE VIEWER
     window.onload = function() {
-        setCursorStyle(appData.cursor);
-        
         viewer = pannellum.viewer('panorama', {
             "default": { "firstScene": "stairway", "autoLoad": true, "showControls": false },
             "scenes": buildPannellumScenes()
         });
 
-        // CLICK CANVAS TO CAPTURE 3D SPATIAL COORDINATES
-        document.getElementById('panorama').addEventListener('mousedown', function(e) {
-            var coords = viewer.canvasToFinalBounds(e);
-            if (coords) {
-                lastClickedCoords.pitch = parseFloat(coords[0].toFixed(2));
-                lastClickedCoords.yaw = parseFloat(coords[1].toFixed(2));
-                document.getElementById('lbl-pitch').innerText = lastClickedCoords.pitch;
-                document.getElementById('lbl-yaw').innerText = lastClickedCoords.yaw;
+        // Dynamic Mouse Click Angle Detection
+        document.getElementById('panorama').addEventListener('mouseup', function(e) {
+            if (viewer) {
+                var coords = viewer.mouseEventToCoords(e);
+                if (coords && coords.length >= 2) {
+                    selectedAngle.pitch = parseFloat(coords[0].toFixed(2));
+                    selectedAngle.yaw = parseFloat(coords[1].toFixed(2));
+                    updateUIReading();
+                }
             }
         });
     };
 
-    // CREATE NEW NODE AT CLICKED PLACE
+    // CAPTURE CAMERA CENTER ANGLE (Guaranteed to work at any rotation angle)
+    function captureCenterViewAngle() {
+        if (!viewer) return;
+        selectedAngle.pitch = parseFloat(viewer.getPitch().toFixed(2));
+        selectedAngle.yaw = parseFloat(viewer.getYaw().toFixed(2));
+        updateUIReading();
+    }
+
+    function updateUIReading() {
+        document.getElementById('lbl-pitch').innerText = selectedAngle.pitch;
+        document.getElementById('lbl-yaw').innerText = selectedAngle.yaw;
+    }
+
+    // CREATE NEW NODE DYNAMICALLY
     function createNewNode() {
         var text = document.getElementById('node-text').value;
         var target = document.getElementById('node-target').value;
@@ -283,47 +266,54 @@
 
         var newNode = {
             "id": newId,
-            "pitch": lastClickedCoords.pitch,
-            "yaw": lastClickedCoords.yaw,
+            "pitch": selectedAngle.pitch,
+            "yaw": selectedAngle.yaw,
             "text": text,
             "target": target
         };
 
         appData.scenes[activeScene].nodes.push(newNode);
-        refreshSceneView();
+
+        // Add hotspot directly without resetting screen view
+        viewer.addHotSpot({
+            "id": newId,
+            "pitch": selectedAngle.pitch,
+            "yaw": selectedAngle.yaw,
+            "cssClass": "node-marker",
+            "createTooltipFunc": function(hotSpotDiv) {
+                hotSpotDiv.title = text + " ➔ " + target;
+                hotSpotDiv.onclick = function(e) {
+                    e.stopPropagation();
+                    selectedNodeId = newId;
+                    highlightSelectedNode(hotSpotDiv);
+                };
+                hotSpotDiv.ondblclick = function(e) {
+                    e.stopPropagation();
+                    loadRoom(target);
+                };
+            }
+        }, activeScene);
+
+        alert("Node successfully placed at Pitch: " + selectedAngle.pitch + "°, Yaw: " + selectedAngle.yaw + "°!");
     }
 
     // DELETE SELECTED NODE
     function deleteSelectedNode() {
-        if (!selectedNodeId) return alert("Select a node marker first!");
+        if (!selectedNodeId) return alert("Click a 🎯 node marker to select it first!");
+        
+        // Remove from data tree
         appData.scenes[activeScene].nodes = appData.scenes[activeScene].nodes.filter(n => n.id !== selectedNodeId);
+        
+        // Remove hotspot live from viewer
+        viewer.removeHotSpot(selectedNodeId, activeScene);
         selectedNodeId = null;
-        refreshSceneView();
     }
 
-    // HIGHLIGHT SELECTED NODE
     function highlightSelectedNode(el) {
         document.querySelectorAll('.node-marker').forEach(m => m.classList.remove('selected'));
         el.classList.add('selected');
     }
 
-    // REFRESH VIEWER SCENE DATA
-    function refreshSceneView() {
-        var currentPitch = viewer.getPitch();
-        var currentYaw = viewer.getYaw();
-        
-        // Destroy & rebuild with updated node placements
-        viewer.destroy();
-        viewer = pannellum.viewer('panorama', {
-            "default": { "firstScene": activeScene, "autoLoad": true, "showControls": false },
-            "scenes": buildPannellumScenes()
-        });
-        
-        viewer.setPitch(currentPitch);
-        viewer.setYaw(currentYaw);
-    }
-
-    // NAVIGATE ROOMS
     function loadRoom(roomKey) {
         activeScene = roomKey;
         selectedNodeId = null;
@@ -334,10 +324,9 @@
         if (btn) btn.classList.add('active');
     }
 
-    // PERMANENT STORAGE
     function saveConfigurationPermanently() {
         localStorage.setItem('PANO_EDITOR_CONFIG', JSON.stringify(appData));
-        alert("LAYOUT SAVED SUCCESSFULLY!\nAll node placements are stored inside the app and will load automatically.");
+        alert("LAYOUT SAVED SUCCESSFULLY!\nAll node placements are stored and will load automatically on startup.");
     }
 </script>
 </body>
