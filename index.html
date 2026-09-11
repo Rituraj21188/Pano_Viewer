@@ -166,7 +166,7 @@
     <div class="hud-copy">PROPRIETARY TOOL © Rituraj_Gogoi</div>
 
 <script>
-    // HARDCODED PERMANENT APP CONFIGURATION
+    // HARDCODED PERMANENT APP CONFIGURATION WITH ALL NODES
     var appData = {
         "scenes": {
             "stairway": {
@@ -302,15 +302,21 @@
         renderNodes3D();
     }
 
-    // RENDER 3D NODES
+    // RENDER COMPACT 3D NODES FOR ALL ROOMS
     function renderNodes3D() {
         nodeMeshes.forEach(mesh => scene.remove(mesh));
         nodeMeshes = [];
 
         var nodes = appData.scenes[activeScene].nodes;
         nodes.forEach(function(n) {
-            var nodeGeo = new THREE.SphereGeometry(2.5, 16, 16);
-            var nodeMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, wireframe: true });
+            // Small radius (0.8) applied universally to all scene nodes
+            var nodeGeo = new THREE.SphereGeometry(0.8, 12, 12);
+            var nodeMat = new THREE.MeshBasicMaterial({ 
+                color: 0x00f0ff, 
+                wireframe: true,
+                transparent: true,
+                opacity: 0.8
+            });
             var nodeMesh = new THREE.Mesh(nodeGeo, nodeMat);
 
             nodeMesh.position.set(n.x, n.y, n.z);
@@ -371,7 +377,7 @@
 
         camera.lookAt(camera.target);
 
-        // Spin nodes slowly
+        // Gentle rotation animation for all node meshes
         nodeMeshes.forEach(mesh => {
             mesh.rotation.y += 0.02;
         });
