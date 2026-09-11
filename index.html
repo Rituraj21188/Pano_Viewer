@@ -1,29 +1,3 @@
-<!-- Load your saved configuration -->
-<script src="app_config.js"></script>
-
-<!-- Your main script -->
-<script>
-    // Remove the hardcoded 'var appConfig = {...}' from index.html 
-    // because it will now automatically load from app_config.js!
-    
-    // Apply saved cursor setting on page load
-    changeCursorStyle(appConfig.activeCursorStyle);
-
-    // Initialize Viewer using the loaded configuration
-    var viewer = pannellum.viewer('panorama', {
-        "default": {
-            "firstScene": "stairway",
-            "author": "Rituraj_Gogoi",
-            "sceneFadeDuration": 1000,
-            "autoLoad": true,
-            "showControls": false
-        },
-        "scenes": appConfig.scenes
-    });
-
-    // ... Rest of your functions (changeCursorStyle, addNodeToCurrentScene, etc.)
-</script>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,7 +7,7 @@
     
     <!-- Pannellum CDN CSS & JS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
@@ -55,7 +29,7 @@
             color: #00f0ff;
         }
 
-        /* HIDE DEFAULT CURSOR FOR CANVAS WHEN CUSTOM CURSOR IS ACTIVE */
+        /* HIDE DEFAULT CURSOR WHEN CUSTOM CURSOR IS ACTIVE */
         body.custom-cursor-active, 
         body.custom-cursor-active * {
             cursor: none !important;
@@ -371,7 +345,7 @@
                 <option value="default">Default OS Cursor</option>
             </select>
 
-            <button class="editor-btn export" onclick="exportConfig()" style="margin-top: 5px;">💾 Export Saved Config</button>
+            <button class="editor-btn export" onclick="exportConfig()" style="margin-top: 5px;">💾 Save Configuration</button>
         </div>
 
         <!-- Navigation HUD Toolbar -->
@@ -389,7 +363,7 @@
     </div>
 
 <script>
-    // App Configuration Tree
+    // Embedded App Configuration (Fully Localized - No External File Needed)
     var appConfig = {
         "activeCursorStyle": "cursor-crosshair",
         "scenes": {
@@ -444,18 +418,62 @@
     };
 
     var currentClickCoords = { pitch: 0, yaw: 0 };
-    const cursorElem = document.getElementById('custom-cursor');
+    var cursorElem = document.getElementById('custom-cursor');
+    var viewer;
 
-    // Custom Mouse Tracker Handler
-    window.addEventListener('mousemove', (e) => {
-        cursorElem.style.left = e.clientX + 'px';
-        cursorElem.style.top = e.clientY + 'px';
+    // Execute scripts once DOM is fully initialized
+    window.addEventListener('DOMContentLoaded', function() {
+        
+        // 1. Setup Custom Mouse Cursor
+        window.addEventListener('mousemove', function(e) {
+            if (cursorElem) {
+                cursorElem.style.left = e.clientX + 'px';
+                cursorElem.style.top = e.clientY + 'px';
+            }
+        });
+
+        // 2. Initialize Pannellum Viewer
+        try {
+            viewer = pannellum.viewer('panorama', {
+                "default": {
+                    "firstScene": "stairway",
+                    "author": "Rituraj_Gogoi",
+                    "sceneFadeDuration": 1000,
+                    "autoLoad": true,
+                    "showControls": false,
+                    "hotSpotDebug": false
+                },
+                "scenes": appConfig.scenes
+            });
+
+            // 3. Coordinate Position Detector
+            document.getElementById('panorama').addEventListener('mousedown', function(event) {
+                if (viewer) {
+                    var coords = viewer.canvasToFinalBounds(event);
+                    if(coords) {
+                        currentClickCoords.pitch = parseFloat(coords[0].toFixed(2));
+                        currentClickCoords.yaw = parseFloat(coords[1].toFixed(2));
+
+                        document.getElementById('val-pitch').innerText = currentClickCoords.pitch;
+                        document.getElementById('val-yaw').innerText = currentClickCoords.yaw;
+                    }
+                }
+            });
+
+            // 4. Register Scene Change Listeners
+            viewer.on('scenechange', function(sceneId) {
+                updateNavState(sceneId);
+            });
+
+        } catch(err) {
+            console.error("Pannellum initialization failed: ", err);
+        }
     });
 
-    // Change Inbuilt App Cursor Style Function
+    // Cursor Switcher Function
     function changeCursorStyle(styleClass) {
         appConfig.activeCursorStyle = styleClass;
-        cursorElem.className = ''; // Clear classes
+        cursorElem.className = ''; 
         
         if (styleClass === 'default') {
             document.body.classList.remove('custom-cursor-active');
@@ -467,33 +485,10 @@
         }
     }
 
-    // Initialize Viewer
-    var viewer = pannellum.viewer('panorama', {
-        "default": {
-            "firstScene": "stairway",
-            "author": "Rituraj_Gogoi",
-            "sceneFadeDuration": 1000,
-            "autoLoad": true,
-            "showControls": false,
-            "hotSpotDebug": false
-        },
-        "scenes": appConfig.scenes
-    });
-
-    // Position Calculator on Click
-    document.getElementById('panorama').addEventListener('mousedown', function(event) {
-        var coords = viewer.canvasToFinalBounds(event);
-        if(coords) {
-            currentClickCoords.pitch = parseFloat(coords[0].toFixed(2));
-            currentClickCoords.yaw = parseFloat(coords[1].toFixed(2));
-
-            document.getElementById('val-pitch').innerText = currentClickCoords.pitch;
-            document.getElementById('val-yaw').innerText = currentClickCoords.yaw;
-        }
-    });
-
-    // Add New Node Dynamically
+    // Dynamic Hotspot Node Inserter
     function addNodeToCurrentScene() {
+        if (!viewer) return;
+
         var activeScene = viewer.getScene();
         var labelText = document.getElementById('hotspot-text').value;
         var targetScene = document.getElementById('target-scene').value;
@@ -512,33 +507,33 @@
         alert('Node Placed in ' + activeScene + '!\nPitch: ' + currentClickCoords.pitch + ' | Yaw: ' + currentClickCoords.yaw);
     }
 
-    // Export Complete Config (Node positions + Cursor Choice)
+    // Save/Export Script
     function exportConfig() {
-        var formattedData = "var appConfig = " + JSON.stringify(appConfig, null, 4) + ";";
+        var formattedData = JSON.stringify(appConfig, null, 4);
         
         navigator.clipboard.writeText(formattedData);
-        alert("Configuration & Cursor choice copied to clipboard!");
+        alert("Configuration copied to clipboard!");
 
-        var blob = new Blob([formattedData], { type: "text/javascript" });
+        var blob = new Blob([formattedData], { type: "application/json" });
         var a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = "app_config.js";
+        a.download = "pano_config.json";
         a.click();
     }
 
-    // Navigation state handlers
+    // Scene Transition Buttons
     function switchScene(sceneId) {
-        viewer.loadScene(sceneId);
-        updateNavState(sceneId);
+        if (viewer) {
+            viewer.loadScene(sceneId);
+            updateNavState(sceneId);
+        }
     }
 
-    viewer.on('scenechange', function(sceneId) {
-        updateNavState(sceneId);
-    });
-
     function updateNavState(sceneId) {
-        document.querySelectorAll('.hud-btn').forEach(btn => btn.classList.remove('active'));
-        const activeBtn = document.getElementById('btn-' + sceneId);
+        document.querySelectorAll('.hud-btn').forEach(function(btn) {
+            btn.classList.remove('active');
+        });
+        var activeBtn = document.getElementById('btn-' + sceneId);
         if (activeBtn) activeBtn.classList.add('active');
     }
 </script>
